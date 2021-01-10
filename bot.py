@@ -4,6 +4,7 @@ import string
 import random
 import sys
 import colorama
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.keys import Keys
@@ -383,8 +384,35 @@ def start_bot(start_url, email, college, collegeID):
         EC.presence_of_element_located((By.ID, 'inputSecurityAnswer3'))
     ).send_keys(sec_ans3)
 
-    print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Please fill the captcha in webdriver to proceed further')
+    #print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Please fill the captcha in webdriver to proceed further')
+    api = ""
+    url = "https://2captcha.com/in.php?key=" + str(api) + \
+            "&method=userrecaptcha&json=0&googlekey=6LeaXhITAAAAACiHR6YSn1YKAUrrTZTLtjxuwYx6&pageurl=https://www.openccc.net/uPortal/p/AccountCreation.ctf1/max/render.uP?pP_execution=e1s4"
+    r = requests.get(url)
+    _, moin = r.text.split("|")
+    print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Found ID ' + moin)
+    #print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Please open captcha!')
+    #print(url)
+    time.sleep(20)
+    
+    url2 = "https://2captcha.com/res.php?key=" + str(api) + "&action=get&id=" + str(moin)
+    r = requests.get(url2)
+    while "CAPCHA_NOT_READY" in r.text:
+        url2 = "https://2captcha.com/res.php?key=" + str(api) + "&action=get&id=" + str(moin)
+        r = requests.get(url2)
+        print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Waiting for 2Captcha')
+        time.sleep(3)
+    try:
+        _, key = r.text.split("|")
+        print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Found key ' + key)
+    except:
+        print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + r.text)
 
+    command = 'document.getElementById("g-recaptcha-response").innerHTML="'+key+'";'
+    #print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Use command ' + command)
+    driver.execute_script(
+        "document.getElementsByName('captchaResponse')[0].setAttribute('type', 'shown');")
+    driver.find_element_by_name("captchaResponse").send_keys(key)
     for d in range(1, 200):
 
         xx = driver.find_element_by_name('captchaResponse')
@@ -420,7 +448,7 @@ def start_bot(start_url, email, college, collegeID):
         print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fy + 'Account Progress - 3/3' + fg + ' (Success)')
         fp = open('myccAcc.txt', 'a')
         birthDay = str(randomMonth) + '/' + str(randomDay) + '/' + str(randomYear)
-        fp.write('Email - ' + email + ' Password - ' + pwd + ' UserName - ' + userName + ' First Name - ' + firstName + ' Middle Name - ' + middleName + ' Last Name - ' + LastName + ' College - ' + college + ' Pin - ' + str(pin) + ' Birthday - ' + birthDay +'\n\n')
+        fp.write(email + '|' + pwd + '|' + userName + '|' + firstName + '|' + middleName + '|' + LastName + '|' + college + '|' + str(pin) + '|' + birthDay +'\n')
         fp.close()
         print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Account Created Successfully, Details saved in myccAcc.txt, Filling Application Form Now')
 
@@ -1010,8 +1038,8 @@ def main():
     isIDError = True
     
     while isIDError != False:
-        print('\n' + fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Enter college id for ex - 1 or 2 or 3.... : ', end='')
-        userInput = int(input())
+        #print('\n' + fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Enter college id for ex - 1 or 2 or 3.... : ', end='')
+        userInput = int(1)
         if userInput > len(allColleges) or userInput < 1:
             print(fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fr + 'Wrong College id')
         else:
@@ -1024,8 +1052,9 @@ def main():
 
     time.sleep(0.4)
 
-    print('\n' + fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Enter Your Email: ', end='')
-    userEmail = input()
+    userName = firstName + str(postFix(7))
+    userEmail = userName + '@nbt.pe.hu'
+    print('\n' + fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Mail: ' + fy + userEmail)
 
     time.sleep(0.4)
 
@@ -1033,8 +1062,9 @@ def main():
 
     time.sleep(1)
     reg_url = start_url + clg_ids[userInput]
-    
-    start_bot(reg_url, userEmail, allColleges[userInput], userInput + 1)
+    print('\n' + fc + sd + '[' + fm + sb + '*' + fc + sd + '] ' + fg + 'Amount: ' + fy + str(random.randint(0, 10)))
+    for i in range(random.randint(1, 10)):
+        start_bot(reg_url, userEmail, allColleges[userInput], userInput + 1)
 
 if __name__ == '__main__':
     main()
